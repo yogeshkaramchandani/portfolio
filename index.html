@@ -183,7 +183,7 @@ function render(){
     el('img',{src:'https://upload.wikimedia.org/wikipedia/commons/8/81/LinkedIn_icon.svg',style:'width:20px;height:20px;'}),
     'LinkedIn'
   )
-),
+)),
         profile())),
       el('div',{class:'stats'},el('div',{class:'in'},[[n,'Projects'],[n-pd,'Articles'],[pd,'PDF downloads']].map(([a,b])=>el('div',{},el('b',{},String(a)),el('span',{},b))))),
       el('div',{class:'in sec'},el('div',{class:'hd'},el('div',{},el('h2',{},'Featured work'),el('p',{class:'sub'},'My latest articles and projects.')),el('a',{class:'more',href:'#portfolio'},'View all →')),el('div',{class:'grid'},D.projects.slice(0,3).map(card)),follow()),
