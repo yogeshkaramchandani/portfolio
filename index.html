@@ -186,5 +186,38 @@ function render(){
   app.append(el('footer',{class:'mut'},'© '+new Date().getFullYear()+' '+S.name));
 }
 addEventListener('hashchange',()=>{render();scrollTo(0,0)});
-fetch('projects.json?'+Date.now()).then(r=>r.json()).then(j=>{D=j;render()}).catch(()=>{app.textContent='Could not load projects.json'});
+fetch('projects.json?'+Date.now()).then(r => r.json()).then(async j => {
+  D = j;
+  if(D.site.substack) {
+    try {
+      const base = D.site.substack.startsWith('http') ? D.site.substack : 'https://' + D.site.substack;
+      const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + base + '/feed');
+      const data = await res.json();
+      if(data.status === 'ok') {
+        data.items.forEach(item => {
+          let img = item.thumbnail;
+          if (!img) {
+              const m = item.content.match(/<img[^>]+src="([^">]+)"/);
+              if (m) img = m[1];
+          }
+          if (!D.projects.some(p => p.link === item.link)) {
+            D.projects.push({
+              id: 'ss-' + Math.random().toString(36).substr(2, 9),
+              title: item.title,
+              date: item.pubDate.split(' ')[0],
+              summary: item.description.replace(/<[^>]+>/g, '').slice(0, 140) + '...',
+              body: '',
+              html: item.content,
+              image: img || '',
+              link: item.link,
+              source: 'substack'
+            });
+          }
+        });
+        D.projects.sort((a,b) => new Date(b.date) - new Date(a.date));
+      }
+    } catch(e) {}
+  }
+  render();
+}).catch(() => { app.textContent = 'Could not load projects.json'; });
 </script></body></html>
