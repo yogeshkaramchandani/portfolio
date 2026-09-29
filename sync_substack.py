@@ -77,7 +77,8 @@ def main():
         'Referer': 'https://google.com/'
     }
     proxy_url = 'https://api.allorigins.win/raw?url=' + base + '/feed'
-    req = urllib.request.Request(proxy_url, headers=headers)    posts = parse(urllib.request.urlopen(req, timeout=30).read())
+    req = urllib.request.Request(proxy_url, headers=headers)    
+    posts = parse(urllib.request.urlopen(req, timeout=30).read())
     hidden = set(D.get('hidden', [])); have = {p['id']: i for i, p in enumerate(D['projects'])}; changed = False
     for r in posts:
         if r['id'] in hidden: continue
