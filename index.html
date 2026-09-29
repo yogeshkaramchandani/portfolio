@@ -177,7 +177,13 @@ function render(){
     app.append(
       el('div',{class:'in'},el('section',{class:'hero'},
         el('div',{},S.role?el('span',{class:'chip'},S.role):null,headline(S.tagline),el('p',{class:'lead'},ps[0]||''),
-          el('div',{class:'cta'},el('a',{class:'btn dark',href:'#portfolio'},'Explore portfolio'),D.projects[0]?el('a',{class:'btn',href:'#p/'+D.projects[0].id},'Read latest'):null)),
+          el('div',{class:'cta'},
+  el('a',{class:'btn dark',href:'#portfolio'},'Explore portfolio'),
+  el('a',{class:'btn',href:'https://www.linkedin.com/in/yogesh-karamchandani/',target:'_blank',rel:'noopener',style:'display:flex;align-items:center;gap:8px;'},
+    el('img',{src:'https://upload.wikimedia.org/wikipedia/commons/8/81/LinkedIn_icon.svg',style:'width:20px;height:20px;'}),
+    'LinkedIn'
+  )
+),
         profile())),
       el('div',{class:'stats'},el('div',{class:'in'},[[n,'Projects'],[n-pd,'Articles'],[pd,'PDF downloads']].map(([a,b])=>el('div',{},el('b',{},String(a)),el('span',{},b))))),
       el('div',{class:'in sec'},el('div',{class:'hd'},el('div',{},el('h2',{},'Featured work'),el('p',{class:'sub'},'My latest articles and projects.')),el('a',{class:'more',href:'#portfolio'},'View all →')),el('div',{class:'grid'},D.projects.slice(0,3).map(card)),follow()),
