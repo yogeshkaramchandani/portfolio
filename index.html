@@ -146,7 +146,7 @@ function card(p){
   return el('a',{class:'card',href:'#p/'+p.id},im,el('h3',{},p.title),p.summary?el('p',{},p.summary):null,el('div',{class:'mut'},(p.pdf?'PDF · ':p.source==='substack'?'Substack · ':'Article · ')+(p.date||'')));
 }
 function clean(t){const d=new DOMParser().parseFromString('<body>'+t,'text/html');d.querySelectorAll('script,style,iframe,object,embed,form,link,meta').forEach(n=>n.remove());d.body.querySelectorAll('*').forEach(n=>{[...n.attributes].forEach(x=>{const v=x.value.trim().toLowerCase();if(x.name.startsWith('on')||((x.name==='href'||x.name==='src')&&v.startsWith('javascript:')))n.removeAttribute(x.name)})});return d.body}
-function follow(){const s=(D.site.substack||'').trim();if(!s)return null;const u=(/^https?:/.test(s)?s:'https://'+s).replace(/\/$/,'')+'/subscribe';return el('div',{class:'follow'},el('div',{},el('b',{},'Enjoy my writing?'),el('p',{},'Follow me on Substack to get new articles in your inbox.')),el('a',{class:'btn dark',href:u,target:'_blank',rel:'noopener'},'Follow on Substack'))}
+function follow(){const s=(D.site.substack||'').trim();if(!s)return '';const u=(/^https?:/.test(s)?s:'https://'+s).replace(/\/$/,'')+'/subscribe';return el('div',{class:'follow'},el('div',{},el('b',{},'Enjoy my writing?'),el('p',{},'Follow me on Substack to get new articles in your inbox.')),el('a',{class:'btn dark',href:u,target:'_blank',rel:'noopener'},'Follow on Substack'))}
 function project(id){
   const p=D.projects.find(x=>x.id===id);
   if(!p)return el('div',{class:'in pg'},el('h1',{},'Not found'));
