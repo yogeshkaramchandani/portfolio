@@ -70,7 +70,7 @@ def main():
     if not base:
         print('No Substack address set in Admin > Site details'); return
     if not base.startswith('http'): base = 'https://' + base
-    req = urllib.request.Request(base + '/feed', headers={'User-Agent': 'Mozilla/5.0 (portfolio-sync)'})
+    req = urllib.request.Request(base + '/feed', headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'})
     posts = parse(urllib.request.urlopen(req, timeout=30).read())
     hidden = set(D.get('hidden', [])); have = {p['id']: i for i, p in enumerate(D['projects'])}; changed = False
     for r in posts:
