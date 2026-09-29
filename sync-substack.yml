@@ -1,0 +1,21 @@
+name: Sync Substack
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 sync_substack.py
+      - run: |
+          if ! git diff --quiet; then
+            git config user.name "github-actions"
+            git config user.email "actions@github.com"
+            git add -A
+            git commit -m "Sync Substack posts"
+            git push
+          fi

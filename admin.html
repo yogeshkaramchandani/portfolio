@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Admin</title>
+<style>
+body{margin:0;background:#fafaf8;color:#1a1a1a;font:16px/1.6 system-ui,sans-serif}
+.w{max-width:640px;margin:0 auto;padding:24px 20px 80px}
+h1{font-weight:500;font-size:26px}h2{font-weight:500;font-size:19px;margin-top:40px}
+label{display:block;font-size:13px;color:#75736e;margin-top:14px}
+input,textarea,select{display:block;width:100%;margin-top:5px;padding:9px 10px;font:15px system-ui;border:1px solid #d8d6d0;border-radius:2px;background:#fff}
+button{font:14px system-ui;padding:9px 16px;border:1px solid #1a1a1a;background:#fff;cursor:pointer;border-radius:2px;margin-top:16px}
+.s{background:#1a1a1a;color:#fff}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #e4e2dc}
+.row button{margin:0 0 0 6px;padding:6px 12px}
+#msg{position:sticky;bottom:0;background:#fafaf8;padding:10px 0;font-size:14px;color:#75736e}
+</style></head><body><div class="w">
+<h1>Portfolio admin</h1>
+<div id="setup">
+<label>GitHub repo (username/repo-name)<input id="repo" placeholder="yourname/portfolio"></label>
+<label>Branch<input id="branch" value="main"></label>
+<label>Access token (kept only in this browser)<input id="token" type="password"></label>
+<button class="s" id="go">Connect</button>
+</div>
+<div id="main" hidden>
+<h2 id="ft">Add a project</h2>
+<label>Headline<input id="t"></label>
+<label>Date<input id="d" type="date"></label>
+<label>Short summary<input id="sm"></label>
+<label>Link to original post (optional, e.g. Substack URL)<input id="lk"></label>
+<label>Cover picture<input id="img" type="file" accept="image/*"></label>
+<label>Type<select id="k"><option value="article">Article (text)</option><option value="pdf">PDF (downloadable)</option></select></label>
+<label>Article text (blank line = new paragraph)<textarea id="b" rows="9"></textarea></label>
+<label>PDF file<input id="pdf" type="file" accept="application/pdf"></label>
+<button class="s" id="save">Publish project</button> <button id="cancel" hidden>Cancel</button>
+<h2>Your projects</h2><div id="list"></div>
+<h2>Site details</h2>
+<label>Name<input id="sn"></label>
+<label>Tagline<input id="stg"></label>
+<label>Role line (short, e.g. your title and focus area)<input id="sr"></label>
+<label>Substack address (e.g. https://yourname.substack.com)<input id="ss"></label>
+<label>Your photo (optional, shown on home page)<input id="sp" type="file" accept="image/*"></label>
+<label><input type="checkbox" id="sx" style="display:inline;width:auto;margin:0 8px 0 0">Show the illustration instead of my photo</label>
+<label>Illustration: skin tone<select id="av1"><option>light</option><option>medium</option><option>tan</option><option>deep</option></select></label><label>Illustration: hair colour<select id="av2"><option>brown</option><option>black</option><option>blonde</option><option>grey</option></select></label><label>Illustration: suit colour<select id="av3"><option>navy</option><option>charcoal</option><option>maroon</option><option>green</option></select></label><label>Illustration: accessory<select id="av4"><option>glasses</option><option>cap</option><option>none</option></select></label>
+<label>Intro text on home page (who you are, what this site is; blank line = new paragraph)<textarea id="sa" rows="6"></textarea></label>
+<button id="ssave">Save details</button>
+</div>
+<div id="msg"></div>
+</div>
+<script>
+const $=s=>document.getElementById(s);
+let cfg=JSON.parse(localStorage.getItem('pf_cfg')||'{}'),D,editId=null;
+const say=t=>$('msg').textContent=t;
+const u8=s=>btoa(unescape(encodeURIComponent(s)));
+const d8=b=>decodeURIComponent(escape(atob(b.replace(/\n/g,''))));
+const api=(p,o={})=>fetch('https://api.github.com/repos/'+cfg.repo+'/contents/'+p+(o.method==='PUT'?'':'?ref='+cfg.branch+'&t='+Date.now()),{...o,headers:{Authorization:'Bearer '+cfg.token,Accept:'application/vnd.github+json','Content-Type':'application/json'}});
+async function put(path,b64,msg){
+  const g=await api(path);const sha=g.ok?(await g.json()).sha:undefined;
+  const r=await api(path,{method:'PUT',body:JSON.stringify({message:msg,content:b64,branch:cfg.branch,sha})});
+  if(!r.ok)throw new Error((await r.json()).message||r.status);
+}
+const saveJson=m=>put('projects.json',u8(JSON.stringify(D,null,1)),m);
+function img(file,max=900){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{const k=Math.min(1,max/i.width),c=document.createElement('canvas');c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);c.getContext('2d').drawImage(i,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.82).split(',')[1])};i.onerror=rej;i.src=r.result};r.onerror=rej;r.readAsDataURL(file)})}
+const b64=file=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file)});
+async function load(){
+  const r=await api('projects.json');
+  if(!r.ok)throw new Error(r.status===404?'projects.json not found in that repo/branch':r.status===401?'Token rejected':'Error '+r.status);
+  D=JSON.parse(d8((await r.json()).content));
+  $('setup').hidden=true;$('main').hidden=false;draw();say('Connected.');
+}
+function draw(){
+  $('sn').value=D.site.name;$('sr').value=D.site.role||'';$('ss').value=D.site.substack||'';const A=D.site.avatar||{};$('av1').value=A.skin||'light';$('av2').value=A.hair||'brown';$('av3').value=A.suit||'navy';$('av4').value=A.acc||'glasses';$('sx').checked=!D.site.photo;$('stg').value=D.site.tagline;$('sa').value=D.site.about;
+  const L=$('list');L.textContent='';
+  D.projects.forEach(p=>{
+    const row=document.createElement('div');row.className='row';
+    const n=document.createElement('span');n.textContent=p.title;
+    const e=document.createElement('button');e.textContent='Edit';e.onclick=()=>edit(p.id);
+    const x=document.createElement('button');x.textContent='Delete';
+    x.onclick=async()=>{if(x.dataset.c!=='1'){x.dataset.c='1';x.textContent='Confirm';return}
+      if(String(p.id).indexOf('ss-')===0)D.hidden=(D.hidden||[]).concat(p.id);D.projects=D.projects.filter(y=>y.id!==p.id);try{say('Deleting…');await saveJson('Delete '+p.title);draw();say('Deleted. Site updates in about a minute.')}catch(er){say(er.message)}};
+    const s=document.createElement('span');s.append(e,x);row.append(n,s);L.append(row);
+  });
+}
+function edit(id){
+  const p=D.projects.find(x=>x.id===id);editId=id;
+  $('t').value=p.title;$('lk').value=p.link||'';$('d').value=p.date||'';$('sm').value=p.summary||'';$('k').value=p.pdf?'pdf':'article';$('b').value=p.body||'';
+  $('ft').textContent='Edit project';$('save').textContent='Save changes';$('cancel').hidden=false;scrollTo(0,0);
+}
+function reset(){editId=null;['t','d','sm','b','lk'].forEach(i=>$(i).value='');$('img').value='';$('pdf').value='';$('ft').textContent='Add a project';$('save').textContent='Publish project';$('cancel').hidden=true}
+$('cancel').onclick=reset;
+$('go').onclick=async()=>{
+  cfg={repo:$('repo').value.trim(),branch:$('branch').value.trim()||'main',token:$('token').value.trim()};
+  try{say('Connecting…');await load();localStorage.setItem('pf_cfg',JSON.stringify(cfg))}catch(e){say(e.message)}
+};
+$('save').onclick=async()=>{
+  const t=$('t').value.trim();if(!t){say('Add a headline.');return}
+  const old=D.projects.find(x=>x.id===editId)||{};
+  const id=old.id||'p'+Date.now().toString(36);
+  const o={...old,id,title:t,date:$('d').value,summary:$('sm').value.trim(),body:$('b').value,image:old.image||'',pdf:old.pdf||'',link:$('lk').value.trim()};
+  try{
+    say('Uploading…');
+    if($('img').files[0]){o.image='assets/'+id+'.jpg';await put(o.image,await img($('img').files[0]),'Add image '+t)}
+    if($('k').value==='pdf'&&$('pdf').files[0]){o.pdf='files/'+id+'.pdf';await put(o.pdf,await b64($('pdf').files[0]),'Add PDF '+t)}
+    if($('k').value==='article')o.pdf='';
+    const i=D.projects.findIndex(x=>x.id===id);if(i>=0)D.projects[i]=o;else D.projects.unshift(o);
+    await saveJson((i>=0?'Update ':'Add ')+t);draw();reset();say('Published. The live site updates in about a minute.');
+  }catch(e){say('Failed: '+e.message)}
+};
+$('ssave').onclick=async()=>{try{say('Saving…');const o=D.site;D.site={name:$('sn').value,tagline:$('stg').value,role:$('sr').value,substack:$('ss').value.trim(),about:$('sa').value,photo:o.photo||'',pv:o.pv||0,avatar:{skin:$('av1').value,hair:$('av2').value,suit:$('av3').value,acc:$('av4').value}};const f=$('sp').files[0];if(f){D.site.photo='assets/photo.jpg';D.site.pv=Date.now();await put('assets/photo.jpg',await img(f,900),'Update photo')}else if($('sx').checked)D.site.photo='';await saveJson('Update site details');say('Saved. Live in about a minute.')}catch(e){say(e.message)}};
+if(cfg.token){$('repo').value=cfg.repo;$('branch').value=cfg.branch;$('token').value=cfg.token;load().catch(e=>say(e.message))}
+</script></body></html>

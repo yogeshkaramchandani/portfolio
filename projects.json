@@ -1,0 +1,27 @@
+{
+ "site": {
+  "name": "Yogesh",
+  "tagline": "Articles, research and projects.",
+  "about": "I'm Yogesh. This is my portfolio, where I share my articles, research and projects.\n\nWrite a line or two here about who you are and what visitors will find on this site.",
+  "role": "Your role · Your focus area",
+  "photo": "illustration.jpg",
+  "pv": 1,
+  "avatar": {
+   "skin": "light",
+   "hair": "brown",
+   "suit": "navy",
+   "acc": "glasses"
+  }
+ },
+ "projects": [
+  {
+   "id": "s1",
+   "title": "Sample article",
+   "date": "2026-09-29",
+   "summary": "A placeholder. Delete it from the admin page after adding your first project.",
+   "body": "This is a sample article.\n\nParagraphs are separated by a blank line.",
+   "image": "",
+   "pdf": ""
+  }
+ ]
+}
