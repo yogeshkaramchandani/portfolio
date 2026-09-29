@@ -168,7 +168,7 @@ function render(){
   document.title=S.name||'Portfolio';
   const on=pg==='portfolio'||pg==='p'?'portfolio':'home';
   app.append(el('nav',{},el('div',{class:'in'},
-    el('a',{class:'brand',href:'#home'},el('span',{class:'mono'},(S.name||'?')[0]),el('span',{style:'min-width:0'},el('b',{},S.name),el('small',{},S.role||''))),
+    el('a',{class:'brand',href:'#home'},el('span',{class:'mono'},(S.name||'?')[0]),el('span',{style:'min-width:0'},el('b',{},S.name))),
     el('div',{class:'tabs'},el('a',{href:'#home',class:on==='home'?'on':''},'Home'),el('a',{href:'#portfolio',class:on==='portfolio'?'on':''},'Portfolio')))));
   if(pg==='portfolio')app.append(el('div',{class:'in pg'},el('h1',{},'Portfolio'),el('p',{class:'sub'},'Articles, research and projects.'),el('div',{class:'grid'},D.projects.map(card))));
   else if(pg==='p')app.append(project(h[1]));
